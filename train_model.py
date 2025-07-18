@@ -441,17 +441,17 @@ def main():
     print(f"Validation data shape: {X_valid.shape}")
     
     # Data augmentation for training
-    datagen = ImageDataGenerator(
-        rotation_range=20,
-        width_shift_range=0.2,
-        height_shift_range=0.2,
-        horizontal_flip=True,
-        zoom_range=0.2,
-        shear_range=0.2,
-        fill_mode='nearest'
-    )
+    # datagen = ImageDataGenerator(
+    #     rotation_range=20,
+    #     width_shift_range=0.2,
+    #     height_shift_range=0.2,
+    #     horizontal_flip=True,
+    #     zoom_range=0.2,
+    #     shear_range=0.2,
+    #     fill_mode='nearest'
+    # )
 
-    datagen.fit(X_train)
+    # datagen.fit(X_train)
     
     model = model_pipeline(
         type_model="custom",
