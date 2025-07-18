@@ -11,6 +11,7 @@ from tensorflow.keras import layers, models
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 import cv2
+from tensorflow.keras.utils import Sequence
 
 
 def process_data(folder_path):
@@ -351,10 +352,22 @@ def analyze_prediction_confidence(model, X_test, y_test, threshold=0.5):
         
         print(f"{thresh:<10} {acc:<10.4f} {prec:<10.4f} {rec:<10.4f} {f1:<10.4f}")
         
-        
+
+class DataGenerator(Sequence):
+    def __init__(self, x_set, y_set, batch_size):
+        self.x, self.y = x_set, y_set
+        self.batch_size = batch_size
+
+    def __len__(self):
+        return int(np.ceil(len(self.x) / float(self.batch_size)))
+
+    def __getitem__(self, idx):
+        batch_x = self.x[idx * self.batch_size:(idx + 1) * self.batch_size]
+        batch_y = self.y[idx * self.batch_size:(idx + 1) * self.batch_size]
+        return batch_x, batch_y
 
 
-def model_pipeline(type_model="custom", model_saved_name="best_model.h5", epochs=100, X_train, y_train, X_valid, y_valid, datagen):
+def model_pipeline(type_model="custom", model_saved_name="best_model.h5", epochs=100, X_train=None, y_train=None, X_valid=None, y_valid=None):
     """Model training pipeline"""
     print(f"\n{'='*60}")
     print("MODEL TRAINING PIPELINE")
@@ -384,7 +397,7 @@ def model_pipeline(type_model="custom", model_saved_name="best_model.h5", epochs
             min_lr=0.0001
         ),
         tf.keras.callbacks.ModelCheckpoint(
-            model_saved_name,
+            f"./models/{model_saved_name}",
             monitor='val_accuracy',
             save_best_only=True,
             mode='max'
@@ -392,7 +405,7 @@ def model_pipeline(type_model="custom", model_saved_name="best_model.h5", epochs
     ]
     
     history = model.fit(
-        datagen.flow(X_train, y_train, batch_size=32),
+        DataGenerator(X_train, y_train, 32),
         steps_per_epoch=len(X_train) // 32,
         epochs=epochs,
         validation_data=(X_valid, y_valid),
@@ -447,8 +460,7 @@ def main():
         X_train=X_train,
         y_train=y_train,
         X_valid=X_valid,
-        y_valid=y_valid,
-        datagen=datagen
+        y_valid=y_valid
     )
     
     evaluate_model_performance(model, X_test, y_test, X_train, y_train, X_valid, y_valid)
