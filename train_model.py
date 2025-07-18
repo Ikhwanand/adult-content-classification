@@ -383,37 +383,6 @@ def model_pipeline(type_model="custom", model_saved_name="best_model.h5", epochs
     
     model.summary()
     
-    # Define callbacks 
-    callbacks = [
-        tf.keras.callbacks.EarlyStopping(
-            monitor="val_loss",
-            patience=20,
-            restore_best_weights=True
-        ),
-        tf.keras.callbacks.ReduceLROnPlateau(
-            monitor='val_loss',
-            factor=0.2,
-            patience=10,
-            min_lr=0.0001
-        ),
-        tf.keras.callbacks.ModelCheckpoint(
-            f"./models/{model_saved_name}",
-            monitor='val_accuracy',
-            save_best_only=True,
-            mode='max'
-        )
-    ]
-    
-    history = model.fit(
-        DataGenerator(X_train, y_train, 32),
-        steps_per_epoch=len(X_train) // 32,
-        epochs=epochs,
-        validation_data=(X_valid, y_valid),
-        callbacks=callbacks,
-        verbose=1
-    )
-    
-    
     return model 
 
 
@@ -454,13 +423,37 @@ def main():
     # datagen.fit(X_train)
     
     model = model_pipeline(
-        type_model="custom",
-        model_saved_name="best_model.h5",
+        type_model="custom"
+    )
+
+     # Define callbacks 
+    callbacks = [
+        tf.keras.callbacks.EarlyStopping(
+            monitor="val_loss",
+            patience=20,
+            restore_best_weights=True
+        ),
+        tf.keras.callbacks.ReduceLROnPlateau(
+            monitor='val_loss',
+            factor=0.2,
+            patience=10,
+            min_lr=0.0001
+        ),
+        tf.keras.callbacks.ModelCheckpoint(
+            "./models/best_model.h5",
+            monitor='val_accuracy',
+            save_best_only=True,
+            mode='max'
+        )
+    ]
+    
+    history = model.fit(
+        DataGenerator(X_train, y_train, 32),
+        steps_per_epoch=len(X_train) // 32,
         epochs=100,
-        X_train=X_train,
-        y_train=y_train,
-        X_valid=X_valid,
-        y_valid=y_valid
+        validation_data=(X_valid, y_valid),
+        callbacks=callbacks,
+        verbose=1
     )
     
     evaluate_model_performance(model, X_test, y_test, X_train, y_train, X_valid, y_valid)
